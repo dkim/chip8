@@ -1,8 +1,14 @@
 #![warn(rust_2018_idioms)]
 
-use std::{error::Error, path::PathBuf, process};
+use std::{path::PathBuf, process};
+
+use log::debug;
+
+use snafu::ErrorCompat;
 
 use structopt::StructOpt;
+
+use chip8::Chip8;
 
 #[derive(Debug, StructOpt)]
 #[structopt(about)]
@@ -15,11 +21,17 @@ struct Opt {
 fn main() {
     if let Err(err) = run(Opt::from_args()) {
         eprintln!("Error: {}", err);
+        if let Some(backtrace) = ErrorCompat::backtrace(&err) {
+            eprintln!("{}", backtrace);
+        }
         process::exit(1);
     }
 }
 
-fn run(_opt: Opt) -> Result<(), Box<dyn Error>> {
+fn run(opt: Opt) -> Result<(), chip8::Error> {
     env_logger::init();
+
+    let chip8 = Chip8::new(&opt.rom_file)?;
+    debug!("{:?}", chip8);
     Ok(())
 }
