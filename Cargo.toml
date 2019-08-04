@@ -2,6 +2,7 @@
 name = "chip8"
 version = "0.1.0"
 authors = ["Deokhwan Kim"]
+description = "chip8 is a CHIP-8 interpreter written in Rust."
 license = "MIT OR Apache-2.0"
 readme = "README.md"
 edition = "2018"
