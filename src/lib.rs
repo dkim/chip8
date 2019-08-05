@@ -4,7 +4,7 @@ use std::{
     fmt::{self, Debug, Formatter},
     fs::File,
     io::{self, Read},
-    ops::{Index, IndexMut, Range},
+    ops::{BitXorAssign, Index, IndexMut, Range},
     path::Path,
 };
 
@@ -75,6 +75,7 @@ impl Chip8 {
     }
 
     fn execute_instruction(&mut self, instruction: u16) -> Result<()> {
+        const F: usize = 0xF;
         match instruction & 0xF000 {
             0x0000 => match instruction & 0x0FFF {
                 0x00E0 => {
@@ -91,6 +92,33 @@ impl Chip8 {
             0xA000 => {
                 // Annn (I = nnn)
                 self.i = instruction & 0x0FFF;
+            }
+            0xD000 => {
+                // Dxyn (draw a sprite at memory I..(I + n) at position (Vx, Vy), VF = collision)
+                let x = usize::from((instruction & 0x0F00) >> 8);
+                let vx = usize::from(self.v[x]) % SCREEN_WIDTH;
+                let y = usize::from((instruction & 0x00F0) >> 4);
+                let vy = usize::from(self.v[y]) % SCREEN_HEIGHT;
+                self.v[F] = 0;
+                for row in 0..(instruction & 0x000F) {
+                    let pixel_y = vy + usize::from(row);
+                    if pixel_y >= SCREEN_HEIGHT {
+                        break;
+                    }
+                    for col in 0..8u16 {
+                        let pixel_x = vx + usize::from(col);
+                        if pixel_x >= SCREEN_WIDTH {
+                            break;
+                        }
+                        if self.ram[usize::from(self.i + row)] & (1 << (7 - col)) != 0 {
+                            let pixel = &mut self.screen[pixel_y][pixel_x];
+                            if let Color::White = *pixel {
+                                self.v[F] = 1;
+                            }
+                            *pixel ^= Color::White;
+                        }
+                    }
+                }
             }
             _ => NotWellFormedInstruction { instruction, pc: self.pc - 2 }.fail()?,
         }
@@ -191,4 +219,14 @@ impl IndexMut<usize> for Screen {
 pub enum Color {
     Black = 0x00,
     White = 0xFF,
+}
+
+impl BitXorAssign for Color {
+    /// Assigns `White` if exactly one of `self` and `other` is `White`, otherwise assigns `Black`.
+    fn bitxor_assign(&mut self, other: Self) {
+        *self = match (*self, other) {
+            (Color::Black, Color::Black) | (Color::White, Color::White) => Color::Black,
+            (Color::Black, Color::White) | (Color::White, Color::Black) => Color::White,
+        };
+    }
 }
