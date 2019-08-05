@@ -192,11 +192,23 @@ impl Chip8 {
                     }
                 }
             }
+            0xF000 => {
+                let x = usize::from((instruction & 0x0F00) >> 8);
+                match instruction & 0x00FF {
+                    0x0029 => {
+                        // Fx29 (I = the address of the sprite for the hexadecimal digit in Vx)
+                        self.i = u16::from(self.v[x] & 0x0F) * SIZE_OF_SPRITE_FOR_DIGIT;
+                    }
+                    _ => NotWellFormedInstruction { instruction, pc: self.pc - 2 }.fail()?,
+                }
+            }
             _ => NotWellFormedInstruction { instruction, pc: self.pc - 2 }.fail()?,
         }
         Ok(())
     }
 }
+
+const SIZE_OF_SPRITE_FOR_DIGIT: u16 = 5;
 
 const SPRITES_FOR_DIGITS: [u8; 80] = [
     0xF0, 0x90, 0x90, 0x90, 0xF0, // 0
