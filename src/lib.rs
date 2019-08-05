@@ -200,6 +200,13 @@ impl Chip8 {
                         }
                         self.i += x as u16 + 1;
                     }
+                    0x0065 => {
+                        // Fx65 (load V0..=Vx from memory I..=(I + x). I = I + x + 1)
+                        for offset in 0..=x {
+                            self.v[offset] = self.ram[usize::from(self.i + offset as u16)];
+                        }
+                        self.i += x as u16 + 1;
+                    }
                     _ => NotWellFormedInstruction { instruction, pc: self.pc - 2 }.fail()?,
                 }
             }
