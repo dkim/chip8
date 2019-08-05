@@ -37,6 +37,7 @@ const PROGRAM_SPACE: Range<usize> = 0x0200..0x1000;
 pub struct Chip8 {
     ram: Vec<u8>, // random access memory
     pc: usize,    // program counter (0 <= pc < 2 ** 16)
+    i: u16,       // register I
     pub screen: Screen,
 }
 
@@ -46,7 +47,7 @@ impl Chip8 {
         let mut ram = Vec::with_capacity(PROGRAM_SPACE.end);
         load_sprites_for_digits(&mut ram);
         load_program(path, &mut ram)?;
-        Ok(Self { ram, pc: PROGRAM_SPACE.start, screen: Screen::default() })
+        Ok(Self { ram, pc: PROGRAM_SPACE.start, i: 0, screen: Screen::default() })
     }
 
     /// Fetches a 2-bytes instruction pointed by the current program counter and executes it.
