@@ -20,5 +20,6 @@ fn main() {
 }
 
 fn run(_opt: Opt) -> Result<(), Box<dyn Error>> {
+    env_logger::init();
     Ok(())
 }
