@@ -1,9 +1,10 @@
 #![warn(rust_2018_idioms)]
 
 use std::{
+    fmt::{self, Debug, Formatter},
     fs::File,
     io::{self, Read},
-    ops::Range,
+    ops::{Index, IndexMut, Range},
     path::Path,
 };
 
@@ -29,6 +30,7 @@ const PROGRAM_SPACE: Range<usize> = 0x0200..0x1000;
 pub struct Chip8 {
     ram: Vec<u8>, // random access memory
     pc: usize,    // program counter (0 <= pc < 2 ** 16)
+    pub screen: Screen,
 }
 
 impl Chip8 {
@@ -37,7 +39,7 @@ impl Chip8 {
         let mut ram = Vec::with_capacity(PROGRAM_SPACE.end);
         load_sprites_for_digits(&mut ram);
         load_program(path, &mut ram)?;
-        Ok(Self { ram, pc: PROGRAM_SPACE.start })
+        Ok(Self { ram, pc: PROGRAM_SPACE.start, screen: Screen::default() })
     }
 
     /// Fetches a 2-bytes instruction pointed by the current program counter and executes it.
@@ -103,4 +105,59 @@ fn load_program<P: AsRef<Path>>(path: P, ram: &mut Vec<u8>) -> Result<()> {
     debug_assert!(ram.len() <= PROGRAM_SPACE.end);
     ram.resize(PROGRAM_SPACE.end, 0);
     Ok(())
+}
+
+/// The width of a CHIP-8 screen.
+pub const SCREEN_WIDTH: usize = 64;
+/// The height of a CHIP-8 screen.
+pub const SCREEN_HEIGHT: usize = 32;
+
+/// A monochrome screen of `SCREEN_WIDTH` x `SCREEN_HEIGHT` pixels.
+pub struct Screen {
+    pixels: [Color; SCREEN_WIDTH * SCREEN_HEIGHT],
+}
+
+impl Default for Screen {
+    /// Creates a black screen.
+    fn default() -> Self {
+        Self { pixels: [Color::Black; SCREEN_WIDTH * SCREEN_HEIGHT] }
+    }
+}
+
+impl Debug for Screen {
+    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+        for y in 0..SCREEN_HEIGHT {
+            for x in 0..SCREEN_WIDTH {
+                f.write_str(if let Color::White = self[y][x] { "O" } else { "." })?;
+            }
+            f.write_str("\n")?;
+        }
+        Ok(())
+    }
+}
+
+impl Index<usize> for Screen {
+    /// A slice of pixels (or colors).
+    type Output = [Color];
+
+    /// Returns a shared reference to the `y`-th row of pixels, panicking if out of bounds.
+    fn index(&self, y: usize) -> &Self::Output {
+        let start = y * SCREEN_WIDTH;
+        &self.pixels[start..(start + SCREEN_WIDTH)]
+    }
+}
+
+impl IndexMut<usize> for Screen {
+    /// Returns a mutable reference to the `y`-th row of pixels, panicking if out of bounds.
+    fn index_mut(&mut self, y: usize) -> &mut Self::Output {
+        let start = y * SCREEN_WIDTH;
+        &mut self.pixels[start..(start + SCREEN_WIDTH)]
+    }
+}
+
+#[derive(Clone, Copy)]
+#[repr(u8)]
+pub enum Color {
+    Black = 0x00,
+    White = 0xFF,
 }
