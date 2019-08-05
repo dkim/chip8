@@ -2,6 +2,8 @@
 
 use std::{error::Error, path::PathBuf, process};
 
+use env_logger;
+
 use structopt::StructOpt;
 
 #[derive(Debug, StructOpt)]
@@ -20,5 +22,6 @@ fn main() {
 }
 
 fn run(_opt: Opt) -> Result<(), Box<dyn Error>> {
+    env_logger::init();
     Ok(())
 }
