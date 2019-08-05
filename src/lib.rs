@@ -88,6 +88,13 @@ impl Chip8 {
                 // 1nnn (jump to address nnn)
                 self.pc = usize::from(instruction & 0x0FFF);
             }
+            0x3000 => {
+                // 3xkk (skip the next instruction if Vx == kk)
+                let x = usize::from((instruction & 0x0F00) >> 8);
+                if self.v[x] == (instruction & 0x00FF) as u8 {
+                    self.pc += 2;
+                }
+            }
             0x6000 => {
                 // 6xkk (Vx = kk)
                 let x = usize::from((instruction & 0x0F00) >> 8);
