@@ -148,6 +148,11 @@ impl Chip8 {
                         self.v[x] = result;
                         self.v[F] = !borrow as u8;
                     }
+                    0x000E => {
+                        // 8xyE (Vx = Vy << 1, VF = carry)
+                        self.v[F] = (self.v[y] & 0x80 != 0) as u8;
+                        self.v[x] = self.v[y] << 1;
+                    }
                     _ => NotWellFormedInstruction { instruction, pc: self.pc - 2 }.fail()?,
                 }
             }
