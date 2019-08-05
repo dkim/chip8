@@ -84,6 +84,10 @@ impl Chip8 {
                 }
                 _ => UnsupportedInstruction { instruction, address: self.pc - 2 }.fail()?,
             },
+            0x1000 => {
+                // 1nnn (jump to address nnn)
+                self.pc = usize::from(instruction & 0x0FFF);
+            }
             0x6000 => {
                 // 6xkk (Vx = kk)
                 let x = usize::from((instruction & 0x0F00) >> 8);
