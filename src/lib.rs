@@ -95,6 +95,13 @@ impl Chip8 {
                     self.pc += 2;
                 }
             }
+            0x4000 => {
+                // 4xkk (skip the next instruction if Vx != kk)
+                let x = usize::from((instruction & 0x0F00) >> 8);
+                if self.v[x] != (instruction & 0x00FF) as u8 {
+                    self.pc += 2;
+                }
+            }
             0x5000 => {
                 // 5xy0 (skip the next instruction if Vx == Vy)
                 let x = usize::from((instruction & 0x0F00) >> 8);
