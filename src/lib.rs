@@ -130,6 +130,12 @@ impl Chip8 {
                         self.v[x] = result;
                         self.v[F] = !borrow as u8;
                     }
+                    0x0007 => {
+                        // 8xy7 (Vx = Vy - Vx, VF = no borrow)
+                        let (result, borrow) = self.v[y].overflowing_sub(self.v[x]);
+                        self.v[x] = result;
+                        self.v[F] = !borrow as u8;
+                    }
                     _ => NotWellFormedInstruction { instruction, pc: self.pc - 2 }.fail()?,
                 }
             }
