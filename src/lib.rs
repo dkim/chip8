@@ -124,6 +124,10 @@ impl Chip8 {
                 let x = usize::from((instruction & 0x0F00) >> 8);
                 let y = usize::from((instruction & 0x00F0) >> 4);
                 match instruction & 0x000F {
+                    0x0001 => {
+                        // 8xy1 (Vx = Vx | Vy)
+                        self.v[x] |= self.v[y];
+                    }
                     0x0005 => {
                         // 8xy5 (Vx = Vx - Vy, VF = no borrow)
                         let (result, borrow) = self.v[x].overflowing_sub(self.v[y]);
