@@ -11,8 +11,14 @@ use snafu::{Backtrace, ResultExt, Snafu};
 
 #[derive(Debug, Snafu)]
 pub enum Error {
+    #[snafu(display("The program counter {:#06X} is invalid", pc))]
+    InvalidProgramCounter { pc: usize },
+
     #[snafu(display("{}", source))]
     Io { source: io::Error, backtrace: Backtrace },
+
+    #[snafu(display("The instruction {:#06X} at {:#06X} is not well-formed", instruction, pc))]
+    NotWellFormedInstruction { instruction: u16, pc: usize },
 }
 
 type Result<T, E = Error> = std::result::Result<T, E>;
@@ -32,6 +38,36 @@ impl Chip8 {
         load_sprites_for_digits(&mut ram);
         load_program(path, &mut ram)?;
         Ok(Self { ram, pc: PROGRAM_SPACE.start })
+    }
+
+    /// Fetches a 2-bytes instruction pointed by the current program counter and executes it.
+    pub fn fetch_execute_cycle(&mut self) -> Result<()> {
+        let instruction = self.fetch_instruction()?;
+        self.execute_instruction(instruction)?;
+        Ok(())
+    }
+
+    fn fetch_instruction(&mut self) -> Result<u16> {
+        let first_byte = if let Some(&byte) = self.ram.get(self.pc) {
+            byte
+        } else {
+            InvalidProgramCounter { pc: self.pc }.fail()?
+        };
+        let second_byte = if let Some(&byte) = self.ram.get(self.pc + 1) {
+            byte
+        } else {
+            InvalidProgramCounter { pc: self.pc + 1 }.fail()?
+        };
+        let instruction = u16::from_be_bytes([first_byte, second_byte]);
+        self.pc += 2;
+        Ok(instruction)
+    }
+
+    fn execute_instruction(&mut self, instruction: u16) -> Result<()> {
+        match instruction & 0xF000 {
+            _ => NotWellFormedInstruction { instruction, pc: self.pc - 2 }.fail()?,
+        }
+        Ok(())
     }
 }
 
