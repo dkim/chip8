@@ -120,6 +120,19 @@ impl Chip8 {
                 let x = usize::from((instruction & 0x0F00) >> 8);
                 self.v[x] = self.v[x].wrapping_add((instruction & 0x00FF) as u8);
             }
+            0x8000 => {
+                let x = usize::from((instruction & 0x0F00) >> 8);
+                let y = usize::from((instruction & 0x00F0) >> 4);
+                match instruction & 0x000F {
+                    0x0005 => {
+                        // 8xy5 (Vx = Vx - Vy, VF = no borrow)
+                        let (result, borrow) = self.v[x].overflowing_sub(self.v[y]);
+                        self.v[x] = result;
+                        self.v[F] = !borrow as u8;
+                    }
+                    _ => NotWellFormedInstruction { instruction, pc: self.pc - 2 }.fail()?,
+                }
+            }
             0xA000 => {
                 // Annn (I = nnn)
                 self.i = instruction & 0x0FFF;
