@@ -32,7 +32,12 @@ fn main() {
 fn run(opt: Opt) -> Result<(), chip8::Error> {
     env_logger::init();
 
-    let chip8 = Chip8::new(&opt.rom_file)?;
+    // Run a CHIP-8 ROM image.
+
+    let mut chip8 = Chip8::new(&opt.rom_file)?;
     debug!("{:?}", chip8);
-    Ok(())
+    loop {
+        chip8.fetch_execute_cycle()?;
+        debug!("{:?}", chip8);
+    }
 }
