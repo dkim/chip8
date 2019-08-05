@@ -20,6 +20,13 @@ pub enum Error {
 
     #[snafu(display("The instruction {:#06X} at {:#06X} is not well-formed", instruction, pc))]
     NotWellFormedInstruction { instruction: u16, pc: usize },
+
+    #[snafu(display(
+        "The instruction {:#06X} at address {:#06X} is not supported",
+        instruction,
+        address
+    ))]
+    UnsupportedInstruction { instruction: u16, address: usize },
 }
 
 type Result<T, E = Error> = std::result::Result<T, E>;
@@ -67,6 +74,13 @@ impl Chip8 {
 
     fn execute_instruction(&mut self, instruction: u16) -> Result<()> {
         match instruction & 0xF000 {
+            0x0000 => match instruction & 0x0FFF {
+                0x00E0 => {
+                    // 00E0 (clear the screen)
+                    self.screen.clear();
+                }
+                _ => UnsupportedInstruction { instruction, address: self.pc - 2 }.fail()?,
+            },
             _ => NotWellFormedInstruction { instruction, pc: self.pc - 2 }.fail()?,
         }
         Ok(())
@@ -115,6 +129,12 @@ pub const SCREEN_HEIGHT: usize = 32;
 /// A monochrome screen of `SCREEN_WIDTH` x `SCREEN_HEIGHT` pixels.
 pub struct Screen {
     pixels: [Color; SCREEN_WIDTH * SCREEN_HEIGHT],
+}
+
+impl Screen {
+    fn clear(&mut self) {
+        self.pixels.iter_mut().for_each(|pixel| *pixel = Color::Black);
+    }
 }
 
 impl Default for Screen {
