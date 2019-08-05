@@ -199,6 +199,13 @@ impl Chip8 {
                         // Fx29 (I = the address of the sprite for the hexadecimal digit in Vx)
                         self.i = u16::from(self.v[x] & 0x0F) * SIZE_OF_SPRITE_FOR_DIGIT;
                     }
+                    0x0055 => {
+                        // Fx55 (save V0..=Vx to memory I..=(I + x), I = I + x + 1)
+                        for offset in 0..=x {
+                            self.ram[usize::from(self.i + offset as u16)] = self.v[offset];
+                        }
+                        self.i += x as u16 + 1;
+                    }
                     _ => NotWellFormedInstruction { instruction, pc: self.pc - 2 }.fail()?,
                 }
             }
