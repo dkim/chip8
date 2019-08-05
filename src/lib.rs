@@ -89,6 +89,11 @@ impl Chip8 {
                 let x = usize::from((instruction & 0x0F00) >> 8);
                 self.v[x] = (instruction & 0x00FF) as u8
             }
+            0x7000 => {
+                // 7xkk (Vx = Vx + kk)
+                let x = usize::from((instruction & 0x0F00) >> 8);
+                self.v[x] = self.v[x].wrapping_add((instruction & 0x00FF) as u8);
+            }
             0xA000 => {
                 // Annn (I = nnn)
                 self.i = instruction & 0x0FFF;
