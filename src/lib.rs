@@ -82,6 +82,10 @@ impl Chip8 {
                 }
                 _ => UnsupportedInstruction { instruction, address: self.pc - 2 }.fail()?,
             },
+            0xA000 => {
+                // Annn (I = nnn)
+                self.i = instruction & 0x0FFF;
+            }
             _ => NotWellFormedInstruction { instruction, pc: self.pc - 2 }.fail()?,
         }
         Ok(())
