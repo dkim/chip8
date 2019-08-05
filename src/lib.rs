@@ -199,6 +199,12 @@ impl Chip8 {
                         // Fx29 (I = the address of the sprite for the hexadecimal digit in Vx)
                         self.i = u16::from(self.v[x]) * SIZE_OF_SPRITE_FOR_DIGIT;
                     }
+                    0x0033 => {
+                        // Fx33 (store the BCD of Vx in memory I..=(I + 2))
+                        self.ram[usize::from(self.i)] = self.v[x] / 100;
+                        self.ram[usize::from(self.i + 1)] = self.v[x] / 10 % 10;
+                        self.ram[usize::from(self.i + 2)] = self.v[x] % 10;
+                    }
                     0x0055 => {
                         // Fx55 (save V0..=Vx to memory I..=(I + x), I = I + x + 1)
                         for offset in 0..=x {
