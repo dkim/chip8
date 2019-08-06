@@ -217,6 +217,10 @@ impl Chip8 {
                 // Annn (I = nnn)
                 self.i = instruction & 0x0FFF;
             }
+            0xB000 => {
+                // Bnnn (jump to address nnn + V0)
+                self.pc = usize::from(instruction & 0x0FFF) + usize::from(self.v[0]);
+            }
             0xD000 => {
                 // Dxyn (draw a sprite at memory I..(I + n) at position (Vx, Vy), VF = collision)
                 let x = usize::from((instruction & 0x0F00) >> 8);
