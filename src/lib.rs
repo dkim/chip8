@@ -8,6 +8,8 @@ use std::{
     path::Path,
 };
 
+use rand;
+
 use snafu::{Backtrace, ResultExt, Snafu};
 
 #[derive(Debug, Snafu)]
@@ -220,6 +222,11 @@ impl Chip8 {
             0xB000 => {
                 // Bnnn (jump to address nnn + V0)
                 self.pc = usize::from(instruction & 0x0FFF) + usize::from(self.v[0]);
+            }
+            0xC000 => {
+                // Cxkk (Vx = rand() & kk)
+                let x = usize::from((instruction & 0x0F00) >> 8);
+                self.v[x] = rand::random::<u8>() & ((instruction & 0x00FF) as u8);
             }
             0xD000 => {
                 // Dxyn (draw a sprite at memory I..(I + n) at position (Vx, Vy), VF = collision)
