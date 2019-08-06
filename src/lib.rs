@@ -221,6 +221,10 @@ impl Chip8 {
             0xF000 => {
                 let x = usize::from((instruction & 0x0F00) >> 8);
                 match instruction & 0x00FF {
+                    0x0015 => {
+                        // Fx15 (delay timer = Vx)
+                        self.timers.delay_timer = self.v[x];
+                    }
                     0x001E => {
                         // Fx1E (I = I + Vx)
                         self.i += u16::from(self.v[x]);
