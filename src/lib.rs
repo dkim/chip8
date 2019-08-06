@@ -258,6 +258,12 @@ impl Chip8 {
                             self.pc += 2;
                         }
                     }
+                    0x00A1 => {
+                        // ExA1 (skip the next instruction if the key in Vx is not pressed)
+                        if !self.is_key_pressed[usize::from(self.v[x])] {
+                            self.pc += 2;
+                        }
+                    }
                     _ => NotWellFormedInstruction { instruction, pc: self.pc - 2 }.fail()?,
                 }
             }
