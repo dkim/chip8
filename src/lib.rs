@@ -153,6 +153,10 @@ impl Chip8 {
                 let x = usize::from((instruction & 0x0F00) >> 8);
                 let y = usize::from((instruction & 0x00F0) >> 4);
                 match instruction & 0x000F {
+                    0x0000 => {
+                        // 8xy0 (Vx = Vy)
+                        self.v[x] = self.v[y];
+                    }
                     0x0001 => {
                         // 8xy1 (Vx = Vx | Vy)
                         self.v[x] |= self.v[y];
