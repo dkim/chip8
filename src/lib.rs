@@ -44,6 +44,8 @@ pub struct Chip8 {
     i: u16,       // register I
     call_stack: Vec<usize>,
     pub timers: Timers,
+    /// If a hex key `k` is being pressed, `is_key_pressed[k]` is true.
+    pub is_key_pressed: [bool; 16],
     pub screen: Screen,
 }
 
@@ -60,6 +62,7 @@ impl Chip8 {
             i: 0,
             call_stack: Vec::with_capacity(12),
             timers: Timers { delay_timer: 0 },
+            is_key_pressed: [false; 16],
             screen: Screen::default(),
         })
     }
