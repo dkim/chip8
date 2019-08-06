@@ -12,6 +12,9 @@ use snafu::{Backtrace, ResultExt, Snafu};
 
 #[derive(Debug, Snafu)]
 pub enum Error {
+    #[snafu(display("Returned at adress {:#06X} when the call stack was empty", address))]
+    CallStackUnderflow { address: usize },
+
     #[snafu(display("The program counter {:#06X} is invalid", pc))]
     InvalidProgramCounter { pc: usize },
 
@@ -89,6 +92,14 @@ impl Chip8 {
                 0x00E0 => {
                     // 00E0 (clear the screen)
                     self.screen.clear();
+                }
+                0x00EE => {
+                    // 00EE (return)
+                    if let Some(return_address) = self.call_stack.pop() {
+                        self.pc = return_address;
+                    } else {
+                        CallStackUnderflow { address: self.pc - 2 }.fail()?;
+                    }
                 }
                 _ => UnsupportedInstruction { instruction, address: self.pc - 2 }.fail()?,
             },
