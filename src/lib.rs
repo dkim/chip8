@@ -45,6 +45,7 @@ pub struct Chip8 {
     v: [u8; 16],  // registers V0, ..., VF
     i: u16,       // register I
     call_stack: Vec<usize>,
+    /// The delay/sound timers.
     pub timers: Timers,
     /// If a hex key `k` is being pressed, `is_key_pressed[k]` is true.
     pub is_key_pressed: [bool; 16],
@@ -63,7 +64,7 @@ impl Chip8 {
             v: [0; 16],
             i: 0,
             call_stack: Vec::with_capacity(12),
-            timers: Timers { delay_timer: 0 },
+            timers: Timers { delay_timer: 0, sound_timer: 0 },
             is_key_pressed: [false; 16],
             screen: Screen::default(),
         })
@@ -362,6 +363,8 @@ fn load_program<P: AsRef<Path>>(path: P, ram: &mut Vec<u8>) -> Result<()> {
 #[derive(Debug)]
 pub struct Timers {
     delay_timer: u8,
+    /// A sound timer.
+    pub sound_timer: u8,
 }
 
 /// The width of a CHIP-8 screen.
