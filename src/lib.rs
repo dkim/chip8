@@ -43,6 +43,7 @@ pub struct Chip8 {
     v: [u8; 16],  // registers V0, ..., VF
     i: u16,       // register I
     call_stack: Vec<usize>,
+    pub timers: Timers,
     pub screen: Screen,
 }
 
@@ -58,6 +59,7 @@ impl Chip8 {
             v: [0; 16],
             i: 0,
             call_stack: Vec::with_capacity(12),
+            timers: Timers { delay_timer: 0 },
             screen: Screen::default(),
         })
     }
@@ -290,6 +292,11 @@ fn load_program<P: AsRef<Path>>(path: P, ram: &mut Vec<u8>) -> Result<()> {
     debug_assert!(ram.len() <= PROGRAM_SPACE.end);
     ram.resize(PROGRAM_SPACE.end, 0);
     Ok(())
+}
+
+#[derive(Debug)]
+pub struct Timers {
+    delay_timer: u8,
 }
 
 /// The width of a CHIP-8 screen.
