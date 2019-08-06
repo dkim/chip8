@@ -1,13 +1,24 @@
 # chip8
 
 chip8 is a [CHIP-8](https://en.wikipedia.org/wiki/CHIP-8) interpreter written
-in Rust.
+in Rust with [Rust-SDL2].
+
+[Rust-SDL2]: https://github.com/Rust-SDL2/rust-sdl2
 
 ## Requirements
 
 ### Rust
 
 This program targets the latest stable version of Rust 1.38.0 or later.
+
+### Simple DirectMedia Layer (SDL)
+
+This program uses the [Rust-SDL2] crate, which requires the [SDL] library to be
+installed. [Rust-SDL2's README.md] provides full details on how to install the
+SDL library on Linux, macOS, and Windows.
+
+[SDL]: https://www.libsdl.org
+[Rust-SDL2's README.md]: https://github.com/Rust-SDL2/rust-sdl2#sdl20-development-libraries
 
 ## License
 

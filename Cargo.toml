@@ -2,7 +2,7 @@
 name = "chip8"
 version = "0.1.0"
 authors = ["Deokhwan Kim"]
-description = "chip8 is a CHIP-8 interpreter written in Rust."
+description = "chip8 is a CHIP-8 interpreter written in Rust with Rust-SDL2."
 license = "MIT OR Apache-2.0"
 readme = "README.md"
 edition = "2018"
@@ -11,5 +11,6 @@ edition = "2018"
 env_logger = "0.7.1"
 log = "0.4.8"
 rand = "0.7.3"
+sdl2 = "0.34.0"
 snafu = { version = "0.6.7", features = ["backtraces"] }
 structopt = { version = "0.3.14", features = ["wrap_help"] }
