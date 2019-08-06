@@ -221,6 +221,18 @@ impl Chip8 {
                     }
                 }
             }
+            0xE000 => {
+                let x = usize::from((instruction & 0x0F00) >> 8);
+                match instruction & 0x00FF {
+                    0x009E => {
+                        // Ex9E (skip the next instruction if the key in Vx is pressed)
+                        if self.is_key_pressed[usize::from(self.v[x])] {
+                            self.pc += 2;
+                        }
+                    }
+                    _ => NotWellFormedInstruction { instruction, pc: self.pc - 2 }.fail()?,
+                }
+            }
             0xF000 => {
                 let x = usize::from((instruction & 0x0F00) >> 8);
                 match instruction & 0x00FF {
