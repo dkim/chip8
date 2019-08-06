@@ -200,6 +200,19 @@ impl Chip8 {
                     _ => NotWellFormedInstruction { instruction, pc: self.pc - 2 }.fail()?,
                 }
             }
+            0x9000 => {
+                let x = usize::from((instruction & 0x0F00) >> 8);
+                let y = usize::from((instruction & 0x00F0) >> 4);
+                match instruction & 0x000F {
+                    0x0000 => {
+                        // 9xy0 (skip the next instruction if Vx != Vy)
+                        if self.v[x] != self.v[y] {
+                            self.pc += 2;
+                        }
+                    }
+                    _ => NotWellFormedInstruction { instruction, pc: self.pc - 2 }.fail()?,
+                }
+            }
             0xA000 => {
                 // Annn (I = nnn)
                 self.i = instruction & 0x0FFF;
