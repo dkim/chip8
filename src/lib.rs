@@ -96,6 +96,11 @@ impl Chip8 {
                 // 1nnn (jump to address nnn)
                 self.pc = usize::from(instruction & 0x0FFF);
             }
+            0x2000 => {
+                // 2nnn (call subroutine at address nnn)
+                self.call_stack.push(self.pc);
+                self.pc = usize::from(instruction & 0x0FFF);
+            }
             0x3000 => {
                 // 3xkk (skip the next instruction if Vx == kk)
                 let x = usize::from((instruction & 0x0F00) >> 8);
