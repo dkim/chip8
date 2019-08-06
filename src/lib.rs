@@ -169,6 +169,12 @@ impl Chip8 {
                         // 8xy3 (Vx = Vx ^ Vy)
                         self.v[x] ^= self.v[y];
                     }
+                    0x0004 => {
+                        // 8xy4 (Vx = Vx + Vy, VF = carry)
+                        let (result, carry) = self.v[x].overflowing_add(self.v[y]);
+                        self.v[x] = result;
+                        self.v[F] = carry as u8;
+                    }
                     0x0005 => {
                         // 8xy5 (Vx = Vx - Vy, VF = no borrow)
                         let (result, borrow) = self.v[x].overflowing_sub(self.v[y]);
