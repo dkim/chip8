@@ -274,6 +274,14 @@ impl Chip8 {
                         // Fx07 (Vx = delay timer)
                         self.v[x] = self.timers.delay_timer;
                     }
+                    0x000A => {
+                        // Fx0A (Vx = a key press)
+                        if let Some(key) = self.is_key_pressed.iter().position(|&pressed| pressed) {
+                            self.v[x] = key as u8;
+                        } else {
+                            self.pc -= 2;
+                        }
+                    }
                     0x0015 => {
                         // Fx15 (delay timer = Vx)
                         self.timers.delay_timer = self.v[x];
