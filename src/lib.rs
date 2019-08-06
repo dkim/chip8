@@ -39,6 +39,7 @@ pub struct Chip8 {
     pc: usize,    // program counter (0 <= pc < 2 ** 16)
     v: [u8; 16],  // registers V0, ..., VF
     i: u16,       // register I
+    call_stack: Vec<usize>,
     pub screen: Screen,
 }
 
@@ -48,7 +49,14 @@ impl Chip8 {
         let mut ram = Vec::with_capacity(PROGRAM_SPACE.end);
         load_sprites_for_digits(&mut ram);
         load_program(path, &mut ram)?;
-        Ok(Self { ram, pc: PROGRAM_SPACE.start, v: [0; 16], i: 0, screen: Screen::default() })
+        Ok(Self {
+            ram,
+            pc: PROGRAM_SPACE.start,
+            v: [0; 16],
+            i: 0,
+            call_stack: Vec::with_capacity(12),
+            screen: Screen::default(),
+        })
     }
 
     /// Fetches a 2-bytes instruction pointed by the current program counter and executes it.
