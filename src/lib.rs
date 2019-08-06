@@ -287,6 +287,10 @@ impl Chip8 {
                         // Fx15 (delay timer = Vx)
                         self.timers.delay_timer = self.v[x];
                     }
+                    0x0018 => {
+                        // Fx18 (sound timer = Vx)
+                        self.timers.sound_timer = self.v[x];
+                    }
                     0x001E => {
                         // Fx1E (I = I + Vx)
                         self.i += u16::from(self.v[x]);
