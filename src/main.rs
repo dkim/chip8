@@ -6,9 +6,11 @@ use log::{debug, info};
 
 use sdl2::{
     event::Event,
+    keyboard::Scancode,
     pixels::{Color, PixelFormatEnum},
     render::{Canvas, Texture, TextureAccess, TextureCreator},
     video::{Window, WindowContext},
+    EventPump,
 };
 
 use snafu::{ErrorCompat, ResultExt, Snafu};
@@ -105,18 +107,65 @@ fn run(opt: Opt) -> Result<()> {
     let mut chip8 = chip8::Chip8::new(&opt.rom_file).context(Chip8)?;
     debug!("{:?}", chip8);
     let mut graphics = Graphics::new(&texture_creator)?;
-    'main: loop {
-        for event in event_pump.poll_iter() {
-            if let Event::Quit { .. } = event {
-                break 'main;
-            }
-        }
+    while process_input(&mut event_pump, &mut chip8) {
         chip8.fetch_execute_cycle().context(Chip8)?;
         debug!("{:?}", chip8);
         graphics.render(&chip8, &mut canvas)?;
         thread::yield_now();
     }
     Ok(())
+}
+
+fn process_input(event_pump: &mut EventPump, chip8: &mut chip8::Chip8) -> bool {
+    for event in event_pump.poll_iter() {
+        match event {
+            Event::KeyDown { scancode: Some(scancode), repeat, .. } => {
+                if !repeat {
+                    if let Some(key) = scancode_to_chip8_key(scancode) {
+                        chip8.is_key_pressed[key] = true;
+                    }
+                }
+            }
+            Event::KeyUp { scancode: Some(scancode), repeat, .. } => {
+                if !repeat {
+                    if let Some(key) = scancode_to_chip8_key(scancode) {
+                        chip8.is_key_pressed[key] = false;
+                    }
+                }
+            }
+            Event::Quit { .. } => return false,
+            _ => (),
+        }
+    }
+    true
+}
+
+// The PC keys (or the SDL scancodes) on the left are mapped to the CHIP-8 keys on the right:
+//
+//   1 2 3 4   1 2 3 C
+//   Q W E R   4 5 6 D
+//   A S D F   7 8 9 E
+//   Z X C V   A 0 B F
+fn scancode_to_chip8_key(scancode: Scancode) -> Option<usize> {
+    match scancode {
+        Scancode::Num1 => Some(0x1),
+        Scancode::Num2 => Some(0x2),
+        Scancode::Num3 => Some(0x3),
+        Scancode::Num4 => Some(0xC),
+        Scancode::Q => Some(0x4),
+        Scancode::W => Some(0x5),
+        Scancode::E => Some(0x6),
+        Scancode::R => Some(0xD),
+        Scancode::A => Some(0x7),
+        Scancode::S => Some(0x8),
+        Scancode::D => Some(0x9),
+        Scancode::F => Some(0xE),
+        Scancode::Z => Some(0xA),
+        Scancode::X => Some(0x0),
+        Scancode::C => Some(0xB),
+        Scancode::V => Some(0xF),
+        _ => None,
+    }
 }
 
 struct Graphics<'texture_creator> {
