@@ -1,6 +1,10 @@
 #![warn(rust_2018_idioms)]
 
-use std::{path::PathBuf, process, thread};
+use std::{
+    path::PathBuf,
+    process, thread,
+    time::{Duration, Instant},
+};
 
 use log::{debug, info};
 
@@ -106,10 +110,10 @@ fn run(opt: Opt) -> Result<()> {
 
     let mut chip8 = chip8::Chip8::new(&opt.rom_file).context(Chip8)?;
     debug!("{:?}", chip8);
+    let mut updater = Updater::new();
     let mut graphics = Graphics::new(&texture_creator)?;
     while process_input(&mut event_pump, &mut chip8) {
-        chip8.fetch_execute_cycle().context(Chip8)?;
-        debug!("{:?}", chip8);
+        updater.update(&mut chip8)?;
         graphics.render(&chip8, &mut canvas)?;
         thread::yield_now();
     }
@@ -165,6 +169,32 @@ fn scancode_to_chip8_key(scancode: Scancode) -> Option<usize> {
         Scancode::C => Some(0xB),
         Scancode::V => Some(0xF),
         _ => None,
+    }
+}
+
+struct Updater {
+    clock: Instant,
+    timer_time_lag: Duration,
+}
+
+impl Updater {
+    fn new() -> Self {
+        Self { clock: Instant::now(), timer_time_lag: Duration::new(0, 0) }
+    }
+
+    fn update(&mut self, chip8: &mut chip8::Chip8) -> Result<()> {
+        let elapsed_time = self.clock.elapsed();
+        self.clock = Instant::now();
+
+        self.timer_time_lag += elapsed_time;
+        while self.timer_time_lag >= chip8::TIMER_CLOCK_CYCLE {
+            chip8.timers.count_down();
+            self.timer_time_lag -= chip8::TIMER_CLOCK_CYCLE;
+        }
+
+        chip8.fetch_execute_cycle().context(Chip8)?;
+        debug!("{:?}", chip8);
+        Ok(())
     }
 }
 

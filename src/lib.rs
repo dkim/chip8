@@ -6,6 +6,7 @@ use std::{
     io::{self, Read},
     ops::{BitXorAssign, Index, IndexMut, Range},
     path::Path,
+    time::Duration,
 };
 
 use snafu::{Backtrace, ResultExt, Snafu};
@@ -368,11 +369,22 @@ fn load_program<P: AsRef<Path>>(path: P, ram: &mut Vec<u8>) -> Result<()> {
     Ok(())
 }
 
+// 16,666,667 nanoseconds = 1 / 60 Hz.
+pub const TIMER_CLOCK_CYCLE: Duration = Duration::from_nanos(16_666_667);
+
 #[derive(Debug)]
 pub struct Timers {
     delay_timer: u8,
     /// A sound timer.
     pub sound_timer: u8,
+}
+
+impl Timers {
+    /// Decreases each timer by 1 if it is greater than zero.
+    pub fn count_down(&mut self) {
+        self.delay_timer = self.delay_timer.saturating_sub(1);
+        self.sound_timer = self.sound_timer.saturating_sub(1);
+    }
 }
 
 /// The width of a CHIP-8 screen.
