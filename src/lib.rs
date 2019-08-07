@@ -425,6 +425,13 @@ impl IndexMut<usize> for Screen {
     }
 }
 
+impl AsRef<[u8]> for Screen {
+    /// Returns the raw pixel data in the sdl2::pixels::PixelFormatEnum::RGB332 format.
+    fn as_ref(&self) -> &[u8] {
+        unsafe { &*(&self.pixels as *const [Color] as *const [u8]) }
+    }
+}
+
 #[derive(Clone, Copy)]
 #[repr(u8)]
 pub enum Color {
