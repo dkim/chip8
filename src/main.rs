@@ -71,6 +71,10 @@ type Result<T, E = Error> = std::result::Result<T, E>;
 #[derive(Debug, StructOpt)]
 #[structopt(about)]
 struct Opt {
+    /// Sets how many CHIP-8 instructions will be executed per second
+    #[structopt(long = "cpu-speed", default_value = "600")]
+    cpu_speed: u32,
+
     /// Sets a ROM file to run
     #[structopt(name = "ROM-FILE", parse(from_os_str))]
     rom_file: PathBuf,
@@ -110,7 +114,7 @@ fn run(opt: Opt) -> Result<()> {
 
     let mut chip8 = chip8::Chip8::new(&opt.rom_file).context(Chip8)?;
     debug!("{:?}", chip8);
-    let mut updater = Updater::new();
+    let mut updater = Updater::new(opt.cpu_speed);
     let mut graphics = Graphics::new(&texture_creator)?;
     while process_input(&mut event_pump, &mut chip8) {
         updater.update(&mut chip8)?;
@@ -175,11 +179,20 @@ fn scancode_to_chip8_key(scancode: Scancode) -> Option<usize> {
 struct Updater {
     clock: Instant,
     timer_time_lag: Duration,
+    cpu_time_lag: Duration,
+    instruction_cycle: Duration,
 }
 
 impl Updater {
-    fn new() -> Self {
-        Self { clock: Instant::now(), timer_time_lag: Duration::new(0, 0) }
+    fn new(cpu_speed: u32) -> Self {
+        let instruction_cycle =
+            Duration::from_nanos((1_000_000_000.0 / f64::from(cpu_speed)).round() as u64);
+        Self {
+            clock: Instant::now(),
+            timer_time_lag: Duration::new(0, 0),
+            cpu_time_lag: Duration::new(0, 0),
+            instruction_cycle,
+        }
     }
 
     fn update(&mut self, chip8: &mut chip8::Chip8) -> Result<()> {
@@ -192,8 +205,13 @@ impl Updater {
             self.timer_time_lag -= chip8::TIMER_CLOCK_CYCLE;
         }
 
-        chip8.fetch_execute_cycle().context(Chip8)?;
-        debug!("{:?}", chip8);
+        // NOTE: Each CHIP-8 instruction is assumed to finish within a single instruction cycle.
+        self.cpu_time_lag += elapsed_time;
+        while self.cpu_time_lag >= self.instruction_cycle {
+            chip8.fetch_execute_cycle().context(Chip8)?;
+            debug!("{:?}", chip8);
+            self.cpu_time_lag -= self.instruction_cycle;
+        }
         Ok(())
     }
 }
