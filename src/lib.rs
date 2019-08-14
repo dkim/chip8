@@ -51,11 +51,34 @@ pub struct Chip8 {
     /// If a hex key `k` is being pressed, `is_key_pressed[k]` is true.
     pub is_key_pressed: [bool; 16],
     pub screen: Screen,
+    shift_quirks: bool,
 }
 
 impl Chip8 {
     /// Loads a program.
-    pub fn new<P: AsRef<Path>>(path: P) -> Result<Self> {
+    ///
+    /// <table>
+    /// <thead>
+    /// <tr>
+    ///   <th>Instruction</th>
+    ///   <th><code>shift_quirks</code></th>
+    ///   <th><code>!shift_quirks</code></th>
+    /// </tr>
+    /// </thead>
+    /// <tbody>
+    /// <tr>
+    ///   <td>8xy6</td>
+    ///   <td>Vx = Vx >> 1 and VF = carry</td>
+    ///   <td>Vx = Vy >> 1 and VF = carry</td>
+    /// </tr>
+    /// <tr>
+    ///   <td>8xyE</td>
+    ///   <td>Vx = Vx << 1 and VF = carry</td>
+    ///   <td>Vx = Vy << 1 and VF = carry</td>
+    /// </tr>
+    /// </tbody>
+    /// </table>
+    pub fn new<P: AsRef<Path>>(path: P, shift_quirks: bool) -> Result<Self> {
         let mut ram = Vec::with_capacity(PROGRAM_SPACE.end);
         load_sprites_for_digits(&mut ram);
         load_program(path, &mut ram)?;
@@ -68,6 +91,7 @@ impl Chip8 {
             timers: Timers { delay_timer: 0, sound_timer: 0 },
             is_key_pressed: [false; 16],
             screen: Screen::default(),
+            shift_quirks,
         })
     }
 
@@ -186,9 +210,16 @@ impl Chip8 {
                         self.v[F] = !borrow as u8;
                     }
                     0x0006 => {
-                        // 8xy6 (Vx = Vy >> 1, VF = carry)
-                        self.v[F] = (self.v[y] & 0x01 != 0) as u8;
-                        self.v[x] = self.v[y] >> 1;
+                        // 8xy6
+                        if self.shift_quirks {
+                            // SCHIP: Vx = Vx >> 1, VF = carry
+                            self.v[F] = (self.v[x] & 0x01 != 0) as u8;
+                            self.v[x] >>= 1;
+                        } else {
+                            // CHIP-8: Vx = Vy >> 1, VF = carry
+                            self.v[F] = (self.v[y] & 0x01 != 0) as u8;
+                            self.v[x] = self.v[y] >> 1;
+                        }
                     }
                     0x0007 => {
                         // 8xy7 (Vx = Vy - Vx, VF = no borrow)
@@ -197,9 +228,16 @@ impl Chip8 {
                         self.v[F] = !borrow as u8;
                     }
                     0x000E => {
-                        // 8xyE (Vx = Vy << 1, VF = carry)
-                        self.v[F] = (self.v[y] & 0x80 != 0) as u8;
-                        self.v[x] = self.v[y] << 1;
+                        // 8xyE
+                        if self.shift_quirks {
+                            // SCHIP: Vx = Vx << 1, VF = carry
+                            self.v[F] = (self.v[x] & 0x80 != 0) as u8;
+                            self.v[x] <<= 1;
+                        } else {
+                            // CHIP-8: Vx = Vy << 1, VF = carry
+                            self.v[F] = (self.v[y] & 0x80 != 0) as u8;
+                            self.v[x] = self.v[y] << 1;
+                        }
                     }
                     _ => NotWellFormedInstruction { instruction, pc: self.pc - 2 }.fail()?,
                 }
