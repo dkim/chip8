@@ -80,6 +80,18 @@ struct Opt {
     /// Sets a ROM file to run
     #[structopt(name = "ROM-FILE", parse(from_os_str))]
     rom_file: PathBuf,
+
+    /// Shifts VY (not VX) for 8XY6/8XYE, emulating the original CHIP-8
+    #[structopt(
+        long = "no-shift-quirks",
+        multiple(false),
+        parse(from_occurrences = toggle_bool)
+    )]
+    shift_quirks: bool,
+}
+
+fn toggle_bool(occurrences: u64) -> bool {
+    occurrences == 0
 }
 
 fn main() {
@@ -114,7 +126,7 @@ fn run(opt: Opt) -> Result<()> {
 
     // Run a CHIP-8 ROM image.
 
-    let mut chip8 = chip8::Chip8::new(&opt.rom_file).context(Chip8)?;
+    let mut chip8 = chip8::Chip8::new(&opt.rom_file, opt.shift_quirks).context(Chip8)?;
     debug!("{:?}", chip8);
     let mut updater = Updater::new(opt.cpu_speed);
     let mut graphics = Graphics::new(&texture_creator)?;
