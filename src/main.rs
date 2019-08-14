@@ -78,6 +78,14 @@ struct Opt {
     #[structopt(long = "cpu-speed", default_value = "600")]
     cpu_speed: u32,
 
+    /// Increases I by X + 1 for FX55/FX65, emulating the original CHIP-8
+    #[structopt(
+        long = "no-load-store-quirks",
+        multiple(false),
+        parse(from_occurrences = toggle_bool)
+    )]
+    load_store_quirks: bool,
+
     /// Sets a ROM file to run
     #[structopt(name = "ROM-FILE", parse(from_os_str))]
     rom_file: PathBuf,
@@ -127,7 +135,8 @@ fn run(opt: Opt) -> Result<()> {
 
     // Run a CHIP-8 ROM image.
 
-    let mut chip8 = chip8::Chip8::new(&opt.rom_file, opt.shift_quirks).context(Chip8)?;
+    let mut chip8 =
+        chip8::Chip8::new(&opt.rom_file, opt.shift_quirks, opt.load_store_quirks).context(Chip8)?;
     debug!("{:?}", chip8);
     let mut updater = Updater::new(opt.cpu_speed);
     let mut graphics = Graphics::new(&texture_creator)?;
