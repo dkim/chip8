@@ -52,6 +52,7 @@ pub struct Chip8 {
     pub is_key_pressed: [bool; 16],
     pub screen: Screen,
     shift_quirks: bool,
+    load_store_quirks: bool,
 }
 
 impl Chip8 {
@@ -78,7 +79,32 @@ impl Chip8 {
     /// </tr>
     /// </tbody>
     /// </table>
-    pub fn new<P: AsRef<Path>>(path: P, shift_quirks: bool) -> Result<Self> {
+    /// <table>
+    /// <thead>
+    /// <tr>
+    ///   <th>Instruction</th>
+    ///   <th><code>load_store_quirks</code></th>
+    ///   <th><code>!load_store_quirks</code></th>
+    /// </tr>
+    /// </thead>
+    /// <tbody>
+    /// <tr>
+    ///   <td>Fx55</td>
+    ///   <td>Save V0..=Vx to memory I..=(I + x)</td>
+    ///   <td>Save V0..=Vx to memory I..=(I + x) and I = I + x + 1</td>
+    /// </tr>
+    /// <tr>
+    ///   <td>Fx65</td>
+    ///   <td>Load V0..=Vx from memory I..=(I + x)</td>
+    ///   <td>Load V0..=Vx from memory I..=(I + x) and I = I + x + 1</td>
+    /// </tr>
+    /// </tbody>
+    /// </table>
+    pub fn new<P: AsRef<Path>>(
+        path: P,
+        shift_quirks: bool,
+        load_store_quirks: bool,
+    ) -> Result<Self> {
         let mut ram = Vec::with_capacity(PROGRAM_SPACE.end);
         load_sprites_for_digits(&mut ram);
         load_program(path, &mut ram)?;
@@ -92,6 +118,7 @@ impl Chip8 {
             is_key_pressed: [false; 16],
             screen: Screen::default(),
             shift_quirks,
+            load_store_quirks,
         })
     }
 
@@ -345,18 +372,26 @@ impl Chip8 {
                         self.ram[usize::from(self.i + 2)] = self.v[x] % 10;
                     }
                     0x0055 => {
-                        // Fx55 (save V0..=Vx to memory I..=(I + x), I = I + x + 1)
+                        // Fx55
+                        // CHIP-8: save V0..=Vx to memory I..=(I + x), I = I + x + 1
+                        // SCHIP: save V0..=Vx to memory I..=(I + x)
                         for offset in 0..=x {
                             self.ram[usize::from(self.i + offset as u16)] = self.v[offset];
                         }
-                        self.i += x as u16 + 1;
+                        if !self.load_store_quirks {
+                            self.i += x as u16 + 1;
+                        }
                     }
                     0x0065 => {
-                        // Fx65 (load V0..=Vx from memory I..=(I + x). I = I + x + 1)
+                        // Fx65
+                        // CHIP-8: load V0..=Vx from memory I..=(I + x), I = I + x + 1
+                        // SCHIP: load V0..=Vx from memory I..=(I + x)
                         for offset in 0..=x {
                             self.v[offset] = self.ram[usize::from(self.i + offset as u16)];
                         }
-                        self.i += x as u16 + 1;
+                        if !self.load_store_quirks {
+                            self.i += x as u16 + 1;
+                        }
                     }
                     _ => NotWellFormedInstruction { instruction, pc: self.pc - 2 }.fail()?,
                 }
