@@ -2,7 +2,7 @@
 
 use std::{
     path::PathBuf,
-    process, thread,
+    process,
     time::{Duration, Instant},
 };
 
@@ -19,6 +19,8 @@ use sdl2::{
 };
 
 use snafu::{ErrorCompat, ResultExt, Snafu};
+
+use spin_sleep::LoopHelper;
 
 use structopt::StructOpt;
 
@@ -140,10 +142,24 @@ fn run(opt: Opt) -> Result<()> {
     debug!("{:?}", chip8);
     let mut updater = Updater::new(opt.cpu_speed);
     let mut graphics = Graphics::new(&texture_creator)?;
-    while process_input(&mut event_pump, &mut chip8) {
+    #[cfg(feature = "report_frame_rate")]
+    let mut loop_helper = LoopHelper::builder().report_interval_s(0.1).build_with_target_rate(60.0);
+    #[cfg(not(feature = "report_frame_rate"))]
+    let mut loop_helper = LoopHelper::builder().build_with_target_rate(60.0);
+    loop {
+        loop_helper.loop_start();
+        if !process_input(&mut event_pump, &mut chip8) {
+            break;
+        }
         updater.update(&mut chip8)?;
+        #[cfg(feature = "report_frame_rate")]
+        {
+            if let Some(fps) = loop_helper.report_rate() {
+                info!("Frame rate: {} Hz", fps);
+            }
+        }
         graphics.render(&chip8, &mut canvas)?;
-        thread::yield_now();
+        loop_helper.loop_sleep();
     }
     Ok(())
 }
