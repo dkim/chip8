@@ -1,6 +1,7 @@
 #![warn(rust_2018_idioms)]
 
 use std::{
+    f32,
     path::PathBuf,
     process,
     time::{Duration, Instant},
@@ -10,6 +11,7 @@ use env_logger;
 use log::{debug, info};
 
 use sdl2::{
+    audio::{AudioCallback, AudioDevice, AudioSpec, AudioSpecDesired},
     event::Event,
     keyboard::Scancode,
     pixels::{Color, PixelFormatEnum},
@@ -133,6 +135,19 @@ fn run(opt: Opt) -> Result<()> {
     info!("{:?}", canvas.info());
     let texture_creator = canvas.texture_creator();
 
+    let audio_subsystem = sdl_context.audio()?;
+    let audio_spec_desired = AudioSpecDesired {
+        freq: None,        // the SDL_AUDIO_FREQUENCY environment variable or, if not set, 22050 Hz
+        channels: Some(1), // mono
+        samples: Some(512),
+    };
+    let sampler = |audio_spec: AudioSpec| Sampler {
+        phase: 0.0,
+        step: 440.0 / audio_spec.freq as f32,
+        waveform: Box::new(|phase| f32::sin(2.0 * f32::consts::PI * phase)),
+    };
+    let audio_device = audio_subsystem.open_playback(None, &audio_spec_desired, sampler)?;
+
     let mut event_pump = sdl_context.event_pump()?;
 
     // Run a CHIP-8 ROM image.
@@ -159,9 +174,27 @@ fn run(opt: Opt) -> Result<()> {
             }
         }
         graphics.render(&chip8, &mut canvas)?;
+        play_audio(&chip8, &audio_device);
         loop_helper.loop_sleep();
     }
     Ok(())
+}
+
+struct Sampler {
+    phase: f32,
+    step: f32,
+    waveform: Box<dyn FnMut(f32) -> f32 + Send>,
+}
+
+impl AudioCallback for Sampler {
+    type Channel = f32;
+
+    fn callback(&mut self, samples: &mut [Self::Channel]) {
+        samples.iter_mut().for_each(|sample| {
+            *sample = (self.waveform)(self.phase);
+            self.phase = (self.phase + self.step) % 1.0;
+        });
+    }
 }
 
 fn process_input(event_pump: &mut EventPump, chip8: &mut chip8::Chip8) -> bool {
@@ -283,5 +316,13 @@ impl<'texture_creator> Graphics<'texture_creator> {
         canvas.copy(&self.texture, None, None)?;
         canvas.present();
         Ok(())
+    }
+}
+
+fn play_audio(chip8: &chip8::Chip8, audio_device: &AudioDevice<Sampler>) {
+    if chip8.timers.sound_timer > 0 {
+        audio_device.resume();
+    } else {
+        audio_device.pause();
     }
 }
