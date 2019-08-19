@@ -7,6 +7,9 @@ license = "MIT OR Apache-2.0"
 readme = "README.md"
 edition = "2018"
 
+[badges]
+travis-ci = { repository = "dkim/chip8" }
+
 [dependencies]
 env_logger = "0.7.1"
 log = "0.4.8"
