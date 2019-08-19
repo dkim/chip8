@@ -1,0 +1,36 @@
+language: rust
+rust:
+  - stable
+cache: cargo
+
+matrix:
+  include:
+  - os: linux
+    dist: bionic
+    addons:
+      apt:
+        update: true
+        packages:
+          - libsdl2-dev
+    install:
+      - |
+        if [ -f "$TRAVIS_HOME/.cargo/bin/cargo-install-update" ]; then
+          cargo install-update cargo-update
+        else
+          cargo install cargo-update
+        fi
+      - cargo install-update --allow-no-update cargo-deny
+    script:
+      - cargo deny check
+      - cargo fmt --verbose --all -- --check --verbose
+      - cargo clippy --verbose --all --all-targets --all-features -- --warn rust_2018_idioms --deny warnings
+      - cargo test --verbose --all --all-targets --all-features -- -Z unstable-options --include-ignored
+  - os: osx
+    osx_image: xcode11.2
+    addons:
+      homebrew:
+        update: true
+        packages:
+          - sdl2
+    script:
+      - cargo test --verbose --all --all-targets --all-features -- -Z unstable-options --include-ignored
