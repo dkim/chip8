@@ -22,6 +22,8 @@ use snafu::{ErrorCompat, ResultExt, Snafu};
 
 use structopt::StructOpt;
 
+use chip8::Screen;
+
 const WINDOW_WIDTH: u32 = chip8::SCREEN_WIDTH as u32 * 10;
 const WINDOW_HEIGHT: u32 = chip8::SCREEN_HEIGHT as u32 * 10;
 
@@ -218,6 +220,7 @@ impl Updater {
 }
 
 struct Graphics<'texture_creator> {
+    screen: Screen,
     texture: Texture<'texture_creator>,
 }
 
@@ -229,11 +232,14 @@ impl<'texture_creator> Graphics<'texture_creator> {
             chip8::SCREEN_WIDTH as u32,
             chip8::SCREEN_HEIGHT as u32,
         )?;
-        Ok(Self { texture })
+        Ok(Self { screen: Screen::default(), texture })
     }
 
     fn render(&mut self, chip8: &chip8::Chip8, canvas: &mut Canvas<Window>) -> Result<()> {
-        self.texture.update(None, chip8.screen.as_ref(), chip8::SCREEN_WIDTH)?;
+        // Emulate the screen ghosting effect to reduce flicker.
+        self.screen |= &chip8.screen;
+        self.texture.update(None, self.screen.as_ref(), chip8::SCREEN_WIDTH)?;
+        self.screen = chip8.screen;
 
         canvas.set_draw_color(Color::RGB(0, 0, 0));
         canvas.clear();
