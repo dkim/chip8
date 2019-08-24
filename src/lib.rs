@@ -4,7 +4,7 @@ use std::{
     fmt::{self, Debug, Formatter},
     fs::File,
     io::{self, Read},
-    ops::{BitXorAssign, Index, IndexMut, Range},
+    ops::{BitOrAssign, BitXorAssign, Index, IndexMut, Range},
     path::Path,
     time::Duration,
 };
@@ -389,6 +389,7 @@ pub const SCREEN_WIDTH: usize = 64;
 pub const SCREEN_HEIGHT: usize = 32;
 
 /// A monochrome screen of `SCREEN_WIDTH` x `SCREEN_HEIGHT` pixels.
+#[derive(Copy, Clone)]
 pub struct Screen {
     pixels: [Color; SCREEN_WIDTH * SCREEN_HEIGHT],
 }
@@ -444,11 +445,32 @@ impl AsRef<[u8]> for Screen {
     }
 }
 
+impl BitOrAssign<&Screen> for Screen {
+    /// Performs the `|=` operation pixelwise.
+    fn bitor_assign(&mut self, other: &Screen) {
+        (self.pixels.iter_mut()).zip(other.pixels.iter()).for_each(|(pixel1, pixel2)| {
+            *pixel1 |= pixel2;
+        });
+    }
+}
+
 #[derive(Clone, Copy)]
 #[repr(u8)]
 pub enum Color {
     Black = 0x00,
     White = 0xFF,
+}
+
+impl BitOrAssign<&Color> for Color {
+    /// Assgins `White` if either `self` or `other` is `White`, otherwise assigns `Black`.
+    fn bitor_assign(&mut self, other: &Color) {
+        *self = match (*self, other) {
+            (Color::Black, Color::Black) => Color::Black,
+            (Color::Black, Color::White)
+            | (Color::White, Color::Black)
+            | (Color::White, Color::White) => Color::White,
+        };
+    }
 }
 
 impl BitXorAssign for Color {
