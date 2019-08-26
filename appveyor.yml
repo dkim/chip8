@@ -1,0 +1,23 @@
+skip_tags: true
+
+image: Visual Studio 2019
+cache:
+  - C:\tools\vcpkg\installed -> Cargo.toml, Cargo.lock, appveyor.yml
+  - '%USERPROFILE%\.cargo -> Cargo.toml, Cargo.lock, appveyor.yml'
+  - target -> Cargo.toml, Cargo.lock, appveyor.yml
+install:
+  # rust
+  - curl --silent --show-error --fail --output rustup-init.exe https://win.rustup.rs/x86_64
+  - rustup-init.exe --verbose -y --default-host x86_64-pc-windows-msvc --default-toolchain stable --profile minimal
+  - set "PATH=%PATH%;%USERPROFILE%\.cargo\bin"
+  - rustc --verbose --version
+  - cargo --verbose --version
+  # sdl2
+  - vcpkg install sdl2:x64-windows
+  - set "LIB=%LIB%;C:\tools\vcpkg\installed\x64-windows\lib"
+  - set "PATH=%PATH%;C:\tools\vcpkg\installed\x64-windows\bin"
+build: false
+test_script:
+  - cargo test --verbose --all --all-targets --all-features -- -Z unstable-options --include-ignored
+on_success:
+  - rmdir /S /Q "%USERPROFILE%\.cargo\registry\src"
