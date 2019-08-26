@@ -8,6 +8,7 @@ readme = "README.md"
 edition = "2018"
 
 [badges]
+appveyor = { repository = "dkim/chip8" }
 travis-ci = { repository = "dkim/chip8" }
 
 [dependencies]
