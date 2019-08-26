@@ -5,6 +5,9 @@ authors = ["Deokhwan Kim"]
 description = "chip8 is a CHIP-8 interpreter written in Rust with Rust-SDL2."
 license = "MIT OR Apache-2.0"
 readme = "README.md"
+repository = "https://github.com/dkim/chip8"
+keywords = ["chip-8", "chip8"]
+categories = ["emulators"]
 edition = "2018"
 
 [badges]
