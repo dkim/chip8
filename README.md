@@ -1,6 +1,7 @@
 # chip8
 
 [![Linux/macOS build status](https://img.shields.io/travis/com/dkim/chip8/master?logo=travis&label=linux%20%7C%20macos)](https://travis-ci.com/dkim/chip8)
+[![Windows build status](https://img.shields.io/appveyor/ci/dkim/chip8/master?logo=appveyor&label=windows)](https://ci.appveyor.com/project/dkim/chip8)
 
 chip8 is a [CHIP-8](https://en.wikipedia.org/wiki/CHIP-8) interpreter written
 in Rust with [Rust-SDL2].
