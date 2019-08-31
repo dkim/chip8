@@ -101,6 +101,14 @@ struct Opt {
         parse(from_occurrences = toggle_bool)
     )]
     shift_quirks: bool,
+
+    /// Sets the waveform of the beep
+    #[structopt(
+        long,
+        possible_values(&["sawtooth", "sine", "square", "triangle"]),
+        default_value = "triangle"
+    )]
+    waveform: String,
 }
 
 fn toggle_bool(occurrences: u64) -> bool {
@@ -144,7 +152,17 @@ fn run(opt: Opt) -> Result<()> {
     let sampler = |audio_spec: AudioSpec| Sampler {
         phase: 0.0,
         step: 440.0 / audio_spec.freq as f32,
-        waveform: Box::new(|phase| f32::sin(2.0 * f32::consts::PI * phase)),
+        waveform: match opt.waveform.as_str() {
+            "sawtooth" => {
+                Box::new(|phase| if phase < 0.5 { 2.0 * phase } else { 2.0 * phase - 2.0 })
+            }
+            "sine" => Box::new(|phase| f32::sin(2.0 * f32::consts::PI * phase)),
+            "square" => Box::new(|phase| if phase < 0.5 { 1.0 } else { -1.0 }),
+            "triangle" => {
+                Box::new(|phase| if phase < 0.5 { 4.0 * phase - 1.0 } else { -4.0 * phase + 3.0 })
+            }
+            _ => unreachable!(opt.waveform),
+        },
     };
     let audio_device = audio_subsystem.open_playback(None, &audio_spec_desired, sampler)?;
 
