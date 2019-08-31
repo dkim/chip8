@@ -23,7 +23,7 @@ use snafu::{ErrorCompat, ResultExt, Snafu};
 
 use spin_sleep::LoopHelper;
 
-use structopt::StructOpt;
+use structopt::{clap::arg_enum, StructOpt};
 
 use chip8::Screen;
 
@@ -100,6 +100,32 @@ struct Opt {
         parse(from_occurrences = toggle_bool)
     )]
     shift_quirks: bool,
+
+    /// Sets the waveform of the beep
+    #[structopt(
+        long,
+        possible_values(&Waveform::variants()),
+        case_insensitive(true),
+        default_value
+    )]
+    waveform: Waveform,
+}
+
+arg_enum! {
+    #[derive(Debug)]
+    #[allow(non_camel_case_types)]
+    enum Waveform {
+        sawtooth,
+        sine,
+        square,
+        triangle,
+    }
+}
+
+impl Default for Waveform {
+    fn default() -> Self {
+        Waveform::triangle
+    }
 }
 
 fn toggle_bool(occurrences: u64) -> bool {
@@ -143,7 +169,16 @@ fn run(opt: Opt) -> Result<()> {
     let sampler = |audio_spec: AudioSpec| Sampler {
         phase: 0.0,
         step: 440.0 / audio_spec.freq as f32,
-        waveform: Box::new(|phase| f32::sin(2.0 * f32::consts::PI * phase)),
+        waveform: match opt.waveform {
+            Waveform::sawtooth => {
+                Box::new(|phase| if phase < 0.5 { 2.0 * phase } else { 2.0 * phase - 2.0 })
+            }
+            Waveform::sine => Box::new(|phase| f32::sin(2.0 * f32::consts::PI * phase)),
+            Waveform::square => Box::new(|phase| if phase < 0.5 { 1.0 } else { -1.0 }),
+            Waveform::triangle => {
+                Box::new(|phase| if phase < 0.5 { 4.0 * phase - 1.0 } else { -4.0 * phase + 3.0 })
+            }
+        },
     };
     let audio_device = audio_subsystem.open_playback(None, &audio_spec_desired, sampler)?;
 
