@@ -8,6 +8,25 @@ in Rust with [Rust-SDL2].
 
 [Rust-SDL2]: https://github.com/Rust-SDL2/rust-sdl2
 
+## Features
+
+* Supports both of [the original and modified semantics](#compatibility-notes)
+  of the CHIP-8 instructions.
+* Enables users to determine how many CHIP-8 instructions will be executed per
+  second.
+* Reduces CHIP-8's inherent [flicker] by emulating the screen [ghosting]
+  effect.
+* Demonstrates how to use [`sdl2::render::Texture::update()`] (or
+  [`SDL_UpdateTexture`]) for efficient rendering.
+* Demonstrates how to use SDL's built-in audio subsystem without relying on the
+  [SDL_mixer] extension library.
+
+[flicker]: https://chip8.fandom.com/wiki/Flicker
+[ghosting]: https://www.computerhope.com/jargon/g/ghosting.htm
+[`sdl2::render::Texture::update()`]: https://docs.rs/sdl2/~0.32/sdl2/render/struct.Texture.html#method.update
+[`SDL_UpdateTexture`]: https://wiki.libsdl.org/SDL_UpdateTexture
+[SDL_mixer]: https://www.libsdl.org/projects/SDL_mixer
+
 ## Requirements
 
 ### Rust
