@@ -54,7 +54,7 @@ $ cargo build --release
 
 ``` console
 $ cargo run --release -- --help
-chip8 0.1.0
+chip8 1.0.0
 chip8 is a CHIP-8 interpreter written in Rust with Rust-SDL2.
 
 USAGE:
