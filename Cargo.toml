@@ -1,6 +1,6 @@
 [package]
 name = "chip8"
-version = "0.1.0"
+version = "1.0.0"
 authors = ["Deokhwan Kim"]
 description = "chip8 is a CHIP-8 interpreter written in Rust with Rust-SDL2."
 license = "MIT OR Apache-2.0"
