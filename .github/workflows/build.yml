@@ -1,0 +1,124 @@
+name: build
+
+on:
+  pull_request:
+  push:
+    branches-ignore:
+    - 'dependabot/**'
+    - staging.tmp
+    - trying.tmp
+  schedule:
+    - cron: '0 2 1 * *' # at 02:00 UTC on the first day of each month
+
+jobs:
+  cargo-test-ubuntu:
+    name: cargo test (Ubuntu)
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: Install Rust
+      uses: actions-rs/toolchain@v1
+      with:
+        profile: minimal
+        toolchain: stable
+        override: true
+    - name: Install SDL2
+      run: |
+        sudo apt-get update --assume-yes --quiet --quiet
+        sudo apt-get install --assume-yes --quiet --quiet --no-install-recommends libsdl2-dev
+    - name: cargo test
+      uses: actions-rs/cargo@v1
+      with:
+        command: test
+        args: --verbose --workspace --all-targets -- -Z unstable-options --include-ignored
+    # `cargo test --all-targets` does not run doctest: https://github.com/rust-lang/cargo/issues/6669.
+    - name: cargo test (doc)
+      uses: actions-rs/cargo@v1
+      with:
+        command: test
+        args: --verbose --workspace --doc
+
+  cargo-test-macos:
+    name: cargo test (macOS)
+    runs-on: macOS-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: Install Rust
+      uses: actions-rs/toolchain@v1
+      with:
+        profile: minimal
+        toolchain: stable
+        override: true
+    - name: Install SDL2
+      run: |
+        brew update
+        brew install sdl2
+    - name: cargo test
+      uses: actions-rs/cargo@v1
+      with:
+        command: test
+        args: --verbose --workspace --all-targets -- -Z unstable-options --include-ignored
+    # `cargo test --all-targets` does not run doctest: https://github.com/rust-lang/cargo/issues/6669.
+    - name: cargo test (doc)
+      uses: actions-rs/cargo@v1
+      with:
+        command: test
+        args: --verbose --workspace --doc
+
+  cargo-test-windows:
+    name: cargo test (Windows)
+    runs-on: windows-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: Install Rust
+      uses: actions-rs/toolchain@v1
+      with:
+        profile: minimal
+        toolchain: stable
+        override: true
+    - name: Install SDL2
+      run: vcpkg install sdl2:x64-windows
+    - name: cargo test
+      run: |
+        set "LIB=%LIB%;%VCPKG_INSTALLATION_ROOT%\installed\x64-windows\lib"
+        set "PATH=%PATH%;%VCPKG_INSTALLATION_ROOT%\installed\x64-windows\bin"
+        cargo test --verbose --workspace --all-targets -- -Z unstable-options --include-ignored
+      shell: cmd
+    # `cargo test --all-targets` does not run doctest: https://github.com/rust-lang/cargo/issues/6669.
+    - name: cargo test (doc)
+      run: |
+        set "LIB=%LIB%;%VCPKG_INSTALLATION_ROOT%\installed\x64-windows\lib"
+        set "PATH=%PATH%;%VCPKG_INSTALLATION_ROOT%\installed\x64-windows\bin"
+        cargo test --verbose --workspace --doc
+      shell: cmd
+
+  cargo-fmt-clippy:
+    name: cargo fmt/clippy
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: Install Rust
+      uses: actions-rs/toolchain@v1
+      with:
+        profile: minimal
+        toolchain: stable
+        components: rustfmt, clippy
+        override: true
+    - name: cargo fmt
+      uses: actions-rs/cargo@v1
+      with:
+        command: fmt
+        args: --verbose --all -- --check --verbose
+    - name: cargo clippy
+      uses: actions-rs/cargo@v1
+      with:
+        command: clippy
+        args: --verbose --workspace --all-targets -- --deny warnings
+
+  cargo-deny:
+    name: cargo deny
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: cargo deny
+      uses: EmbarkStudios/cargo-deny-action@v1
