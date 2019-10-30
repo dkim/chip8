@@ -1,5 +1,7 @@
 status = [
-  "continuous-integration/travis-ci/push",
-  "continuous-integration/appveyor/branch",
+  "cargo test (Ubuntu)",
+  "cargo test (macOS)",
+  "cargo test (Windows)",
+  "cargo fmt/clippy",
 ]
 cut_body_after = "<details>"
