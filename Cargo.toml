@@ -10,10 +10,6 @@ keywords = ["chip-8", "chip8"]
 categories = ["emulators"]
 edition = "2018"
 
-[badges]
-appveyor = { repository = "dkim/chip8" }
-travis-ci = { repository = "dkim/chip8" }
-
 [dependencies]
 env_logger = "0.7.1"
 log = "0.4.11"
