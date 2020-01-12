@@ -31,7 +31,7 @@ jobs:
       uses: actions-rs/cargo@v1
       with:
         command: test
-        args: --verbose --all --all-targets --all-features -- -Z unstable-options --include-ignored
+        args: --verbose --workspace --all-targets --all-features -- -Z unstable-options --include-ignored
 
   cargo-test-macos:
     name: cargo test (macOS)
@@ -52,7 +52,7 @@ jobs:
       uses: actions-rs/cargo@v1
       with:
         command: test
-        args: --verbose --all --all-targets --all-features -- -Z unstable-options --include-ignored
+        args: --verbose --workspace --all-targets --all-features -- -Z unstable-options --include-ignored
 
   cargo-test-windows:
     name: cargo test (Windows)
@@ -71,7 +71,7 @@ jobs:
       run: |
         set "LIB=%LIB%;%VCPKG_INSTALLATION_ROOT%\installed\x64-windows\lib"
         set "PATH=%PATH%;%VCPKG_INSTALLATION_ROOT%\installed\x64-windows\bin"
-        cargo test --verbose --all --all-targets --all-features -- -Z unstable-options --include-ignored
+        cargo test --verbose --workspace --all-targets --all-features -- -Z unstable-options --include-ignored
       shell: cmd
 
   cargo-fmt-clippy:
@@ -95,4 +95,4 @@ jobs:
       uses: actions-rs/cargo@v1
       with:
         command: clippy
-        args: --verbose --all --all-targets --all-features -- --warn rust_2018_idioms --deny warnings
+        args: --verbose --workspace --all-targets --all-features -- --warn rust_2018_idioms --deny warnings
