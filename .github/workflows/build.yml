@@ -16,9 +16,7 @@ jobs:
     name: cargo test (Ubuntu)
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v1
-      with:
-        fetch-depth: 1
+    - uses: actions/checkout@v2
     - name: Install Rust
       uses: actions-rs/toolchain@v1
       with:
@@ -39,9 +37,7 @@ jobs:
     name: cargo test (macOS)
     runs-on: macOS-latest
     steps:
-    - uses: actions/checkout@v1
-      with:
-        fetch-depth: 1
+    - uses: actions/checkout@v2
     - name: Install Rust
       uses: actions-rs/toolchain@v1
       with:
@@ -62,9 +58,7 @@ jobs:
     name: cargo test (Windows)
     runs-on: windows-latest
     steps:
-    - uses: actions/checkout@v1
-      with:
-        fetch-depth: 1
+    - uses: actions/checkout@v2
     - name: Install Rust
       uses: actions-rs/toolchain@v1
       with:
@@ -84,9 +78,7 @@ jobs:
     name: cargo fmt/clippy
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v1
-      with:
-        fetch-depth: 1
+    - uses: actions/checkout@v2
     - name: Install Rust
       uses: actions-rs/toolchain@v1
       with:
