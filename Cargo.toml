@@ -12,7 +12,7 @@ edition = "2018"
 
 [dependencies]
 env_logger = "0.7.1"
-log = "0.4.11"
+log = "0.4.14"
 rand = "0.7.3"
 sdl2 = "0.34.3"
 snafu = { version = "0.6.10", features = ["backtraces"] }
