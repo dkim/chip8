@@ -15,7 +15,7 @@ env_logger = "0.7.1"
 log = "0.4.11"
 rand = "0.7.3"
 sdl2 = "0.34.3"
-snafu = { version = "0.6.8", features = ["backtraces"] }
+snafu = { version = "0.6.10", features = ["backtraces"] }
 spin_sleep = "1.0.0"
 structopt = { version = "0.3.21", features = ["wrap_help"] }
 strum = "0.18.0"
