@@ -130,9 +130,9 @@ fn toggle_bool(occurrences: u64) -> bool {
 
 fn main() {
     if let Err(err) = run(Opt::from_args()) {
-        eprintln!("Error: {}", err);
+        eprintln!("Error: {err}");
         if let Some(backtrace) = ErrorCompat::backtrace(&err) {
-            eprintln!("{}", backtrace);
+            eprintln!("{backtrace}");
         }
         process::exit(1);
     }
