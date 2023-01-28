@@ -8,7 +8,7 @@ readme = "README.md"
 repository = "https://github.com/dkim/chip8"
 keywords = ["chip-8", "chip8"]
 categories = ["emulators"]
-edition = "2018"
+edition = "2021"
 
 [dependencies]
 env_logger = "0.9.0"

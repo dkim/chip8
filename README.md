@@ -30,7 +30,7 @@ in Rust with [Rust-SDL2].
 
 ### Rust
 
-This program targets the latest stable version of Rust 1.38.0 or later.
+This program targets the latest stable version of Rust 1.56.1 or later.
 
 ### Simple DirectMedia Layer (SDL)
 
