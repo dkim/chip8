@@ -3,10 +3,12 @@ confidence-threshold = 1.0
 allow = [
   "Apache-2.0",
   "MIT",
+  "Unicode-DFS-2016",
 ]
 
 [bans]
 multiple-versions = "deny"
 skip = [
     { name = "cfg-if", version = "0.1.10" },
+    { name = "heck", version = "0.3.2" },
 ]

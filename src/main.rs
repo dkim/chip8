@@ -35,13 +35,13 @@ const WINDOW_HEIGHT: u32 = chip8::SCREEN_HEIGHT as u32 * 10;
 
 #[derive(Debug, Snafu)]
 enum Error {
-    #[snafu(display("{}", source))]
+    #[snafu(display("{source}"))]
     Chip8 {
         #[snafu(backtrace)]
         source: chip8::Error,
     },
 
-    #[snafu(display("{}", source))]
+    #[snafu(display("{source}"))]
     Sdl { source: Box<dyn std::error::Error> },
 }
 
@@ -182,8 +182,8 @@ fn run(opt: Opt) -> Result<()> {
 
     // Run a CHIP-8 ROM image.
 
-    let mut chip8 =
-        chip8::Chip8::new(&opt.rom_file, opt.shift_quirks, opt.load_store_quirks).context(Chip8)?;
+    let mut chip8 = chip8::Chip8::new(&opt.rom_file, opt.shift_quirks, opt.load_store_quirks)
+        .context(Chip8Snafu)?;
     debug!("{:?}", chip8);
     let mut updater = Updater::new(opt.cpu_speed);
     let mut graphics = Graphics::new(&texture_creator)?;
@@ -311,7 +311,7 @@ impl Updater {
         // NOTE: Each CHIP-8 instruction is assumed to finish within a single instruction cycle.
         self.cpu_time_lag += elapsed_time;
         while self.cpu_time_lag >= self.instruction_cycle {
-            chip8.fetch_execute_cycle().context(Chip8)?;
+            chip8.fetch_execute_cycle().context(Chip8Snafu)?;
             debug!("{:?}", chip8);
             self.cpu_time_lag -= self.instruction_cycle;
         }
