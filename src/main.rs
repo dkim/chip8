@@ -109,19 +109,14 @@ struct Opt {
     waveform: Waveform,
 }
 
-#[derive(Debug, strum_macros::Display, EnumString, EnumVariantNames)]
+#[derive(Debug, Default, strum_macros::Display, EnumString, EnumVariantNames)]
 #[strum(serialize_all = "kebab_case")]
 enum Waveform {
     Sawtooth,
     Sine,
     Square,
+    #[default]
     Triangle,
-}
-
-impl Default for Waveform {
-    fn default() -> Self {
-        Waveform::Triangle
-    }
 }
 
 fn toggle_bool(occurrences: u64) -> bool {
