@@ -1,6 +1,6 @@
 # chip8
 
-[![build status](https://github.com/dkim/chip8/workflows/build/badge.svg)](https://github.com/dkim/chip8/actions?query=workflow%3Abuild+branch%3Amaster)
+[![build status](https://github.com/dkim/chip8/workflows/build/badge.svg)](https://github.com/dkim/chip8/actions?query=workflow%3Abuild+branch%3Amain)
 
 chip8 is a [CHIP-8](https://en.wikipedia.org/wiki/CHIP-8) interpreter written
 in Rust with [Rust-SDL2].
