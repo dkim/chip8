@@ -30,7 +30,7 @@ jobs:
       uses: actions-rs/cargo@v1
       with:
         command: test
-        args: --verbose --workspace --all-targets -- -Z unstable-options --include-ignored
+        args: --verbose --workspace --all-targets -- --include-ignored
     # `cargo test --all-targets` does not run doctest: https://github.com/rust-lang/cargo/issues/6669.
     - name: cargo test (doc)
       uses: actions-rs/cargo@v1
@@ -57,7 +57,7 @@ jobs:
       uses: actions-rs/cargo@v1
       with:
         command: test
-        args: --verbose --workspace --all-targets -- -Z unstable-options --include-ignored
+        args: --verbose --workspace --all-targets -- --include-ignored
     # `cargo test --all-targets` does not run doctest: https://github.com/rust-lang/cargo/issues/6669.
     - name: cargo test (doc)
       uses: actions-rs/cargo@v1
@@ -82,7 +82,7 @@ jobs:
       run: |
         set "LIB=%LIB%;%VCPKG_INSTALLATION_ROOT%\installed\x64-windows\lib"
         set "PATH=%PATH%;%VCPKG_INSTALLATION_ROOT%\installed\x64-windows\bin"
-        cargo test --verbose --workspace --all-targets -- -Z unstable-options --include-ignored
+        cargo test --verbose --workspace --all-targets -- --include-ignored
       shell: cmd
     # `cargo test --all-targets` does not run doctest: https://github.com/rust-lang/cargo/issues/6669.
     - name: cargo test (doc)
