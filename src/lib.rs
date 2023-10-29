@@ -9,25 +9,24 @@ use std::{
     time::Duration,
 };
 
-use snafu::{Backtrace, ResultExt, Snafu};
-
-#[derive(Debug, Snafu)]
+#[derive(Debug, thiserror::Error)]
 pub enum Error {
-    #[snafu(display("Returned at adress {address:#06X} when the call stack was empty"))]
+    #[error("Returned at adress {address:#06X} when the call stack was empty")]
     CallStackUnderflow { address: usize },
 
-    #[snafu(display("The program counter {pc:#06X} is invalid"))]
+    #[error("The program counter {pc:#06X} is invalid")]
     InvalidProgramCounter { pc: usize },
 
-    #[snafu(display("{source}"))]
-    Io { source: io::Error, backtrace: Backtrace },
+    #[error("{source}")]
+    Io {
+        source: io::Error,
+        // backtrace: std::backtrace::Backtrace,
+    },
 
-    #[snafu(display("The instruction {instruction:#06X} at {pc:#06X} is not well-formed"))]
+    #[error("The instruction {instruction:#06X} at {pc:#06X} is not well-formed")]
     NotWellFormedInstruction { instruction: u16, pc: usize },
 
-    #[snafu(display(
-        "The instruction {instruction:#06X} at address {address:#06X} is not supported"
-    ))]
+    #[error("The instruction {instruction:#06X} at address {address:#06X} is not supported")]
     UnsupportedInstruction { instruction: u16, address: usize },
 }
 
@@ -126,17 +125,11 @@ impl Chip8 {
     }
 
     fn fetch_instruction(&mut self) -> Result<u16> {
-        let first_byte = if let Some(&byte) = self.ram.get(self.pc) {
-            byte
-        } else {
-            InvalidProgramCounterSnafu { pc: self.pc }.fail()?
-        };
-        let second_byte = if let Some(&byte) = self.ram.get(self.pc + 1) {
-            byte
-        } else {
-            InvalidProgramCounterSnafu { pc: self.pc + 1 }.fail()?
-        };
-        let instruction = u16::from_be_bytes([first_byte, second_byte]);
+        let first_byte =
+            self.ram.get(self.pc).ok_or(Error::InvalidProgramCounter { pc: self.pc })?;
+        let second_byte =
+            self.ram.get(self.pc + 1).ok_or(Error::InvalidProgramCounter { pc: self.pc + 1 })?;
+        let instruction = u16::from_be_bytes([*first_byte, *second_byte]);
         self.pc += 2;
         Ok(instruction)
     }
@@ -152,13 +145,11 @@ impl Chip8 {
                 }
                 0x00EE => {
                     // 00EE (return)
-                    if let Some(return_address) = self.call_stack.pop() {
-                        self.pc = return_address;
-                    } else {
-                        CallStackUnderflowSnafu { address: self.pc - 2 }.fail()?;
-                    }
+                    let return_address = (self.call_stack.pop())
+                        .ok_or(Error::CallStackUnderflow { address: self.pc - 2 })?;
+                    self.pc = return_address;
                 }
-                _ => UnsupportedInstructionSnafu { instruction, address: self.pc - 2 }.fail()?,
+                _ => Err(Error::UnsupportedInstruction { instruction, address: self.pc - 2 })?,
             },
             0x1000 => {
                 // 1nnn (jump to address nnn)
@@ -263,7 +254,7 @@ impl Chip8 {
                             self.v[x] = self.v[y] << 1;
                         }
                     }
-                    _ => NotWellFormedInstructionSnafu { instruction, pc: self.pc - 2 }.fail()?,
+                    _ => Err(Error::NotWellFormedInstruction { instruction, pc: self.pc - 2 })?,
                 }
             }
             0x9000 => {
@@ -276,7 +267,7 @@ impl Chip8 {
                             self.pc += 2;
                         }
                     }
-                    _ => NotWellFormedInstructionSnafu { instruction, pc: self.pc - 2 }.fail()?,
+                    _ => Err(Error::NotWellFormedInstruction { instruction, pc: self.pc - 2 })?,
                 }
             }
             0xA000 => {
@@ -334,7 +325,7 @@ impl Chip8 {
                             self.pc += 2;
                         }
                     }
-                    _ => NotWellFormedInstructionSnafu { instruction, pc: self.pc - 2 }.fail()?,
+                    _ => Err(Error::NotWellFormedInstruction { instruction, pc: self.pc - 2 })?,
                 }
             }
             0xF000 => {
@@ -396,10 +387,10 @@ impl Chip8 {
                             self.i += x as u16 + 1;
                         }
                     }
-                    _ => NotWellFormedInstructionSnafu { instruction, pc: self.pc - 2 }.fail()?,
+                    _ => Err(Error::NotWellFormedInstruction { instruction, pc: self.pc - 2 })?,
                 }
             }
-            _ => NotWellFormedInstructionSnafu { instruction, pc: self.pc - 2 }.fail()?,
+            _ => Err(Error::NotWellFormedInstruction { instruction, pc: self.pc - 2 })?,
         }
         Ok(())
     }
@@ -434,8 +425,8 @@ fn load_sprites_for_digits(ram: &mut Vec<u8>) {
 fn load_program<P: AsRef<Path>>(path: P, ram: &mut Vec<u8>) -> Result<()> {
     debug_assert!(ram.len() <= PROGRAM_SPACE.start);
     ram.resize(PROGRAM_SPACE.start, 0);
-    let mut program = File::open(path).context(IoSnafu)?;
-    program.read_to_end(ram).context(IoSnafu)?;
+    let mut program = File::open(path).map_err(|source| Error::Io { source })?;
+    program.read_to_end(ram).map_err(|source| Error::Io { source })?;
     debug_assert!(ram.len() <= PROGRAM_SPACE.end);
     ram.resize(PROGRAM_SPACE.end, 0);
     Ok(())

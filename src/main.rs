@@ -19,8 +19,6 @@ use sdl2::{
     EventPump,
 };
 
-use snafu::{ErrorCompat, ResultExt, Snafu};
-
 use spin_sleep::LoopHelper;
 
 use structopt::StructOpt;
@@ -33,15 +31,16 @@ use chip8::Screen;
 const WINDOW_WIDTH: u32 = chip8::SCREEN_WIDTH as u32 * 10;
 const WINDOW_HEIGHT: u32 = chip8::SCREEN_HEIGHT as u32 * 10;
 
-#[derive(Debug, Snafu)]
+#[derive(Debug, thiserror::Error)]
 enum Error {
-    #[snafu(display("{source}"))]
+    #[error(transparent)]
     Chip8 {
-        #[snafu(backtrace)]
+        #[from]
+        // #[backtrace]
         source: chip8::Error,
     },
 
-    #[snafu(display("{source}"))]
+    #[error(transparent)]
     Sdl { source: Box<dyn std::error::Error> },
 }
 
@@ -126,9 +125,6 @@ fn toggle_bool(occurrences: u64) -> bool {
 fn main() {
     if let Err(err) = run(Opt::from_args()) {
         eprintln!("Error: {err}");
-        if let Some(backtrace) = ErrorCompat::backtrace(&err) {
-            eprintln!("{backtrace}");
-        }
         process::exit(1);
     }
 }
@@ -177,8 +173,7 @@ fn run(opt: Opt) -> Result<()> {
 
     // Run a CHIP-8 ROM image.
 
-    let mut chip8 = chip8::Chip8::new(&opt.rom_file, opt.shift_quirks, opt.load_store_quirks)
-        .context(Chip8Snafu)?;
+    let mut chip8 = chip8::Chip8::new(&opt.rom_file, opt.shift_quirks, opt.load_store_quirks)?;
     debug!("{:?}", chip8);
     let mut updater = Updater::new(opt.cpu_speed);
     let mut graphics = Graphics::new(&texture_creator)?;
@@ -306,7 +301,7 @@ impl Updater {
         // NOTE: Each CHIP-8 instruction is assumed to finish within a single instruction cycle.
         self.cpu_time_lag += elapsed_time;
         while self.cpu_time_lag >= self.instruction_cycle {
-            chip8.fetch_execute_cycle().context(Chip8Snafu)?;
+            chip8.fetch_execute_cycle()?;
             debug!("{:?}", chip8);
             self.cpu_time_lag -= self.instruction_cycle;
         }
