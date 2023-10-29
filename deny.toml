@@ -10,7 +10,13 @@ allow = [
 multiple-versions = "deny"
 skip = [
     { name = "bitflags", version = "1.2.1" },
-    { name = "heck", version = "0.3.2" },
-    { name = "hermit-abi", version = "0.1.19" },
-    { name = "syn", version = "1.0.109" },
+    { name = "windows-sys", version = "0.48.0" },
+    { name = "windows-targets", version = "0.48.5" },
+    { name = "windows_aarch64_gnullvm", version = "0.48.5" },
+    { name = "windows_aarch64_msvc", version = "0.48.5" },
+    { name = "windows_i686_gnu", version = "0.48.5" },
+    { name = "windows_i686_msvc", version = "0.48.5" },
+    { name = "windows_x86_64_gnu", version = "0.48.5" },
+    { name = "windows_x86_64_gnullvm", version = "0.48.5" },
+    { name = "windows_x86_64_msvc", version = "0.48.5" },
 ]

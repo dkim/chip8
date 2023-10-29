@@ -7,6 +7,8 @@ use std::{
     time::{Duration, Instant},
 };
 
+use clap::Parser;
+
 use log::{debug, info};
 
 use sdl2::{
@@ -22,8 +24,6 @@ use sdl2::{
 use snafu::{ErrorCompat, ResultExt, Snafu};
 
 use spin_sleep::LoopHelper;
-
-use structopt::StructOpt;
 
 use strum::VariantNames;
 use strum_macros::{EnumString, EnumVariantNames};
@@ -77,39 +77,35 @@ impl From<sdl2::video::WindowBuildError> for Error {
 
 type Result<T, E = Error> = std::result::Result<T, E>;
 
-#[derive(Debug, StructOpt)]
-#[structopt(about)]
+#[derive(Debug, Parser)]
+#[command(about, author, version)]
 struct Opt {
     /// Sets how many CHIP-8 instructions will be executed per second
-    #[structopt(long = "cpu-speed", default_value = "700")]
+    #[arg(long = "cpu-speed", value_name = "CPU-SPEED", default_value = "700")]
     cpu_speed: u32,
 
     /// Increases I by X + 1 for FX55/FX65, emulating the original CHIP-8
-    #[structopt(
-        long = "no-load-store-quirks",
-        multiple(false),
-        parse(from_occurrences = toggle_bool)
-    )]
+    #[arg(long = "no-load-store-quirks", action = clap::ArgAction::SetFalse)]
     load_store_quirks: bool,
 
     /// Sets a ROM file to run
-    #[structopt(name = "ROM-FILE", parse(from_os_str))]
+    #[arg(name = "ROM-FILE")]
     rom_file: PathBuf,
 
     /// Shifts VY (not VX) for 8XY6/8XYE, emulating the original CHIP-8
-    #[structopt(
-        long = "no-shift-quirks",
-        multiple(false),
-        parse(from_occurrences = toggle_bool)
-    )]
+    #[arg(long = "no-shift-quirks", action = clap::ArgAction::SetFalse)]
     shift_quirks: bool,
 
     /// Sets the waveform of the beep
-    #[structopt(long, possible_values(Waveform::VARIANTS), case_insensitive(true), default_value)]
+    #[arg(
+        long,
+        value_parser = clap::builder::PossibleValuesParser::new(Waveform::VARIANTS),
+        ignore_case(true),
+        default_value_t)]
     waveform: Waveform,
 }
 
-#[derive(Debug, Default, strum_macros::Display, EnumString, EnumVariantNames)]
+#[derive(Clone, Debug, Default, strum_macros::Display, EnumString, EnumVariantNames)]
 #[strum(serialize_all = "kebab_case")]
 enum Waveform {
     Sawtooth,
@@ -119,12 +115,8 @@ enum Waveform {
     Triangle,
 }
 
-fn toggle_bool(occurrences: u64) -> bool {
-    occurrences == 0
-}
-
 fn main() {
-    if let Err(err) = run(Opt::from_args()) {
+    if let Err(err) = run(Opt::parse()) {
         eprintln!("Error: {err}");
         if let Some(backtrace) = ErrorCompat::backtrace(&err) {
             eprintln!("{backtrace}");
