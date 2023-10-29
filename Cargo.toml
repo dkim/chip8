@@ -18,8 +18,8 @@ sdl2 = "0.34.3"
 snafu = { version = "0.7.4", features = ["backtraces"] }
 spin_sleep = "1.1.1"
 structopt = { version = "0.3.21", features = ["wrap_help"] }
-strum = "0.20.0"
-strum_macros = "0.20.1"
+strum = "0.25.0"
+strum_macros = "0.25.3"
 
 [features]
 default = []
