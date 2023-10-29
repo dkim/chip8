@@ -9,6 +9,7 @@ allow = [
 [bans]
 multiple-versions = "deny"
 skip = [
+    { name = "bitflags", version = "1.2.1" },
     { name = "cfg-if", version = "0.1.10" },
     { name = "heck", version = "0.3.2" },
 ]
