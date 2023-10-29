@@ -9,15 +9,16 @@ repository = "https://github.com/dkim/chip8"
 keywords = ["chip-8", "chip8"]
 categories = ["emulators"]
 edition = "2021"
+rust-version = "1.70.0"
 
 [dependencies]
 env_logger = "0.10.0"
+clap = { version = "4.4.16", features = ["derive", "wrap_help"] }
 log = "0.4"
 rand = "0.8.5"
 sdl2 = "0.35.2"
 snafu = "0.8.0"
 spin_sleep = "1.1.1"
-structopt = { version = "0.3.21", features = ["wrap_help"] }
 strum = "0.25.0"
 strum_macros = "0.25.3"
 

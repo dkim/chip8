@@ -28,10 +28,6 @@ in Rust with [Rust-SDL2].
 
 ## Requirements
 
-### Rust
-
-This program targets the latest stable version of Rust 1.56.1 or later.
-
 ### Simple DirectMedia Layer (SDL)
 
 This program uses the [Rust-SDL2] crate, which requires the [SDL] library to be
