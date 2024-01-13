@@ -23,7 +23,7 @@ use sdl2::{
 
 use snafu::{ErrorCompat, ResultExt, Snafu};
 
-use spin_sleep::LoopHelper;
+use spin_sleep_util::MissedTickBehavior;
 
 use strum::VariantNames;
 use strum_macros::{EnumString, EnumVariantNames};
@@ -174,25 +174,24 @@ fn run(opt: Opt) -> Result<()> {
     debug!("{:?}", chip8);
     let mut updater = Updater::new(opt.cpu_speed);
     let mut graphics = Graphics::new(&texture_creator)?;
+    let mut interval = spin_sleep_util::interval(Duration::from_secs(1) / 60)
+        .with_missed_tick_behavior(MissedTickBehavior::Delay);
     #[cfg(feature = "report_frame_rate")]
-    let mut loop_helper = LoopHelper::builder().report_interval_s(0.1).build_with_target_rate(60.0);
-    #[cfg(not(feature = "report_frame_rate"))]
-    let mut loop_helper = LoopHelper::builder().build_with_target_rate(60.0);
+    let mut reporter = spin_sleep_util::RateReporter::new(Duration::from_secs(1) / 10);
     loop {
-        loop_helper.loop_start();
+        interval.tick();
         if !process_input(&mut event_pump, &mut chip8) {
             break;
         }
         updater.update(&mut chip8)?;
         #[cfg(feature = "report_frame_rate")]
         {
-            if let Some(fps) = loop_helper.report_rate() {
+            if let Some(fps) = reporter.increment_and_report() {
                 info!("Frame rate: {} Hz", fps);
             }
         }
         graphics.render(&chip8, &mut canvas)?;
         play_audio(&chip8, &audio_device);
-        loop_helper.loop_sleep();
     }
     Ok(())
 }

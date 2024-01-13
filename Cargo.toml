@@ -17,7 +17,7 @@ log = "0.4"
 rand = "0.8.5"
 sdl2 = "0.35.2"
 snafu = "0.8.0"
-spin_sleep = "1.1.1"
+spin_sleep_util = "0.1.1"
 strum = "0.25.0"
 strum_macros = "0.25.3"
 
