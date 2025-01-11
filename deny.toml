@@ -3,20 +3,13 @@ confidence-threshold = 1.0
 allow = [
   "Apache-2.0",
   "MIT",
-  "Unicode-DFS-2016",
+  "Unicode-3.0",
 ]
 
 [bans]
 multiple-versions = "deny"
 skip = [
     { name = "bitflags", version = "1.2.1" },
-    { name = "windows-sys", version = "0.48.0" },
-    { name = "windows-targets", version = "0.48.5" },
-    { name = "windows_aarch64_gnullvm", version = "0.48.5" },
-    { name = "windows_aarch64_msvc", version = "0.48.5" },
-    { name = "windows_i686_gnu", version = "0.48.5" },
-    { name = "windows_i686_msvc", version = "0.48.5" },
-    { name = "windows_x86_64_gnu", version = "0.48.5" },
-    { name = "windows_x86_64_gnullvm", version = "0.48.5" },
-    { name = "windows_x86_64_msvc", version = "0.48.5" },
+    { name = "heck", version = "0.4.1" },
+    { name = "windows-sys", version = "0.52.0" },
 ]
